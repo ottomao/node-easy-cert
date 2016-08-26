@@ -1,0 +1,31 @@
+{
+  "name": "cert-manager",
+  "version": "1.0.0",
+  "description": "A tool for managing self-signed certifications",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "sh test/test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.alipay-inc.com:iat/cert-manager.git"
+  },
+  "keywords": [
+    "certification",
+    "https"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "async-task-mgr": "^1.1.0",
+    "colorful": "^2.1.0",
+    "node-forge": "^0.6.42"
+  },
+  "devDependencies": {
+    "babel-polyfill": "^6.13.0",
+    "babel-preset-es2015": "^6.13.2",
+    "babel-preset-stage-0": "^6.5.0",
+    "babel-register": "^6.11.6",
+    "jasmine": "^2.4.1"
+  }
+}
