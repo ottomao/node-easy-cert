@@ -70,31 +70,11 @@ function CertManager (options) {
         });
     }
 
-    function createCert(hostname,callback){
-        _checkRootCA();
-
-        var cmd = cmd_genCert + " __host __path".replace(/__host/,hostname).replace(/__path/,certDir);
-        exec(cmd,{ cwd : certDir },function(err,stdout,stderr){
-            if(err){
-                callback && callback(new Error("error when generating certificate"),null);
-            }else{
-                var tipText = "certificate created for __HOST".replace(/__HOST/,hostname);
-                console.log(color.yellow(color.bold("[internal https]")) + color.yellow(tipText)) ;
-                callback(null);
-            }
-        });
-    }
-
     function clearCerts(cb){
-        console.info('cert dir is:', certDir);
-        exec('ls ', { cwd: certDir }, (error) => {
-            console.error(error);
-        });
-
         if(isWin){
             exec("del * /q",{ cwd : certDir },cb);
         }else{
-            exec("rm *.key *.csr *.crt *.srl",{ cwd : certDir },cb);
+            exec("rm *.key *.csr *.crt *.srl .DS_Store",{ cwd : certDir },cb);
         }
     }
 
@@ -102,9 +82,7 @@ function CertManager (options) {
         return (fs.existsSync(rootCAcrtFilePath) && fs.existsSync(rootCAkeyFilePath));
     }
 
-
-
-    function generateRootCA(){
+    function generateRootCA(certCallback){
         if(isRootCAFileExists()){
             console.log(color.yellow("rootCA exists at " + certDir));
             var rl = readline.createInterface({
@@ -114,7 +92,7 @@ function CertManager (options) {
 
             rl.question("do you really want to generate a new one ?)(yes/NO)", function(answer) {
                 if(/yes/i.test(answer)){
-                    startGenerating();
+                    startGenerating(certCallback);
                 }else{
                     console.log("will not generate a new one");
                     process.exit(0);
@@ -123,10 +101,10 @@ function CertManager (options) {
                 rl.close();
             });
         }else{
-            startGenerating();
+            startGenerating(certCallback);
         }
 
-        function startGenerating(){
+        function startGenerating(certCallback){
             //clear old certs
             clearCerts(function(error){
                 console.log(color.red(error));
@@ -137,18 +115,19 @@ function CertManager (options) {
                     fs.writeFileSync(rootCAcrtFilePath, result.certificate);
 
                     console.log(color.green("rootCA generated"));
-                    console.log(color.green(color.bold("please trust the rootCA.crt in " + certDir)));
+                    console.log(color.green(color.bold("PLEASE TRUST the rootCA.crt in " + certDir)));
 
                     if(isWin){
                         exec("start .",{ cwd : certDir });
                     }else{
                         exec("open .",{ cwd : certDir });
                     }
-
+                    certCallback();
                 }catch(e){
                     console.log(color.red(e));
                     console.log(color.red(e.stack));
                     console.log(color.red("fail to generate root CA"));
+                    certCallback(e);
                 }
             });
         }
@@ -156,6 +135,10 @@ function CertManager (options) {
 
     function getRootCAFilePath(){
         return isRootCAFileExists() ? rootCAcrtFilePath: '';
+    }
+
+    function getRootDirPath () {
+        return fullRootDir;
     }
 
     function _checkRootCA(){
@@ -176,9 +159,9 @@ function CertManager (options) {
         getRootCAFilePath: getRootCAFilePath,
         generateRootCA: generateRootCA,
         getCertificate: getCertificate,
-        createCert: createCert,
         clearCerts: clearCerts,
-        isRootCAFileExists: isRootCAFileExists
+        isRootCAFileExists: isRootCAFileExists,
+        getRootDirPath: getRootDirPath
     };
 }
 

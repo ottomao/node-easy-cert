@@ -1,38 +1,96 @@
-const CertManager = require('../src/index.js')();
+const CertManager = require('../src/index.js');
 const util = require('../src/util.js');
 const fs = require('fs');
-
-const defaultRootPath = util.getUserHome() + '/' + util.getDefaultRootName() + '/';
+const bddstdin = require('bdd-stdin');
 
 describe('Test Cert Manager', () => {
-    // it('generateRootCA', () => {
-    //     try{
-    //         CertManager.generateRootCA();
-    //     } catch (e) {
-    //         console.error(e);
-    //     }
-    // });
-
-    it('getRootCAFilePath', () => {
-        const filePath = CertManager.getRootCAFilePath();
-        expect(filePath).toEqual(defaultRootPath + 'rootCA.crt');
+    beforeAll(() => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
     });
 
-    it('createCert', (done) => {
-        CertManager.createCert('localhost', () => {
-            const path = defaultRootPath + '/localhost.crt';
-            fs.exists(path, (error) => {
+    describe('Default Cert Manager', () => {
+        const certMgr = CertManager();
+        const rootDirPath = util.getUserHome() + '/' + util.getDefaultRootName() + '/';
+        beginTest(certMgr, rootDirPath);
+    });
+
+    describe('RootName with rootName .certmanager_certs_test', () => {
+        const options = {
+            rootName: '.certmanager_test'
+        };
+        const certMgr = CertManager(options);
+        const rootDirPath = util.getUserHome() + '/.certmanager_certs_test/';
+
+        beginTest(certMgr, rootDirPath);
+    });
+
+    describe('RootName with fullRootDir /Users/wangweijie/.certmanager_certs_fulldir', () => {
+        const options = {
+            fullRootDir: '/Users/wangweijie/.certmanager_certs_fulldir'
+        };
+        const certMgr = CertManager(options);
+        const rootDirPath = util.getUserHome() + '/.certmanager_certs_test/';
+
+        beginTest(certMgr, rootDirPath);
+    });
+
+
+    function beginTest (certMgr, rootDirPath) {
+        it('generateRootCA', (done) => {
+            bddstdin('yes\n');
+
+            certMgr.generateRootCA((error) => {
                 if (!error) {
-                    done();
-                } else {
-                    done.fail('cert generated failed');
+                    fs.stat(rootDirPath + 'rootCA.crt', (e) => {
+                        if (!e) {
+                            done();
+                        } else {
+                            console.error(e);
+                            done.fail('failed to generate root ca');
+                        }
+                    });
                 }
             });
         });
-    });
 
-    it('clearCerts', () => {
+        it('getRootCAFilePath', () => {
+            const filePath = certMgr.getRootCAFilePath();
+            expect(filePath).toEqual(rootDirPath + 'rootCA.crt');
+        });
 
-    });
+        it('getRootDirPath', () => {
+            const filePath = certMgr.getRootCAFilePath();
+            expect(filePath).toEqual(rootDirPath + 'rootCA.crt');
+        });
+
+        it('getCertificate', (done) => {
+            certMgr.getCertificate('localhost', () => {
+                const path = rootDirPath + '/localhost.crt';
+                fs.stat(path, (error) => {
+                    if (!error) {
+                        done();
+                    } else {
+                        console.error(error);
+                        done.fail('cert generated failed');
+                    }
+                });
+            });
+        });
+
+        it('clearCerts', (done) => {
+            certMgr.clearCerts(() => {
+                fs.rmdir(rootDirPath, (error) => {
+                    if (error) {
+                        console.error('root dir path is:', error);
+                        done.fail('failed to clear certs');
+
+                    } else {
+                        done();
+                    }
+                });
+            });
+        });
+    }
+
 });
 
