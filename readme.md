@@ -6,23 +6,23 @@
 const CertManager = require('cert-manager');
 
 const options = {
-  rootName: '.certmanager_custom', // default to .certmanager_certs
-  fullRootDir: '/the/full/path/of/the/dir' // if specified, the instance will take this as root dir
+  rootDirName: '.certmanager_custom', // default to .certmanager_certs
+  rootDirPath: '/the/full/path/of/the/dir' // if specified, the instance will take this as root dir
 }
 
 crtMgr.generateRootCA();
 ```
 # 配置项(可选)
 
-## rootName
+## rootDirName
 证书的根目录名，默认放在 `user_home` 的目录下
 
-## fullRootDir
-证书目录的全路径，如果配置，优先级高于rootName
+## rootDirPath
+证书目录的全路径，如果配置，优先级高于rootDirName
 
 # 证书生成目录
 默认情况下，证书都会生成在 `{USER_HOME}/{ROOT_NAME}/`,  其中`ROOT_NAME` 默认为 *.certmanager_certs*。
-如果配置了`fullRootDir`, 那么所有的证书都会生成在该目录下
+如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下
 
 # 方法
 ### generateRootCA(callback(error))

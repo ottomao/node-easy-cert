@@ -10,13 +10,13 @@ describe('Test Cert Manager', () => {
 
     describe('Default Cert Manager', () => {
         const certMgr = CertManager();
-        const rootDirPath = util.getUserHome() + '/' + util.getDefaultRootName() + '/';
+        const rootDirPath = util.getUserHome() + '/' + util.getDefaultRootDirName() + '/';
         beginTest(certMgr, rootDirPath);
     });
 
-    describe('RootName with rootName .certmanager_certs_test', () => {
+    describe('RootDirName with rootDirName .certmanager_certs_test', () => {
         const options = {
-            rootName: '.certmanager_certs_test'
+            rootDirName: '.certmanager_certs_test'
         };
         const certMgr = CertManager(options);
         const rootDirPath = util.getUserHome() + '/.certmanager_certs_test/';
@@ -24,9 +24,9 @@ describe('Test Cert Manager', () => {
         beginTest(certMgr, rootDirPath);
     });
 
-    describe('RootName with fullRootDir /Users/wangweijie/.certmanager_certs_fulldir', () => {
+    describe('RootDirName with fullRootDir /Users/wangweijie/.certmanager_certs_fulldir', () => {
         const options = {
-            fullRootDir: '/Users/wangweijie/.certmanager_certs_fulldir'
+            rootDirPath: '/Users/wangweijie/.certmanager_certs_fulldir'
         };
         const certMgr = CertManager(options);
         const rootDirPath = util.getUserHome() + '/.certmanager_certs_fulldir/';

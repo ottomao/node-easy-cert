@@ -13,11 +13,11 @@ var exec = require('child_process').exec,
 
 function CertManager (options) {
     options = options || {};
-    var rootName = options.rootName || util.getDefaultRootName();
-    var fullRootDir  = options.fullRootDir || path.join(util.getUserHome(),"/" + rootName + "/");
+    var rootDirName = options.rootDirName || util.getDefaultRootDirName();
+    var rootDirPath  = options.rootDirPath || path.join(util.getUserHome(),"/" + rootDirName + "/");
 
     var isWin             = /^win/.test(process.platform),
-        certDir           = fullRootDir,
+        certDir           = rootDirPath,
         rootCAcrtFilePath = path.join(certDir,"rootCA.crt"),
         rootCAkeyFilePath = path.join(certDir,"rootCA.key"),
         createCertTaskMgr = new asyncTask();
@@ -143,7 +143,7 @@ function CertManager (options) {
     }
 
     function getRootDirPath () {
-        return fullRootDir;
+        return rootDirPath;
     }
 
     function _checkRootCA(){
