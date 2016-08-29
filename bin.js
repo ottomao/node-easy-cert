@@ -13,39 +13,39 @@ program
   .option('-d, --dirPath', 'get the dir path of root folder')
   .parse(process.argv);
 
-if (program.root) {
-    crtMgr.generateRootCA((error) => {
-        if (error) {
-            console.log(color.red('Failed to generate root CA'));
-            console.error(error);
-        } else {
-            console.log(color.cyan('Root CA generated!'));
-            console.log(color.cyan('\n ### Please install and trust them before using them ###\n'));
-        }
-    });
-}
+// if (program.root) {
+//     crtMgr.generateRootCA((error) => {
+//         if (error) {
+//             console.log(color.red('Failed to generate root CA'));
+//             console.error(error);
+//         } else {
+//             console.log(color.cyan('Root CA generated!'));
+//             console.log(color.cyan('\n ### Please install and trust them before using them ###\n'));
+//         }
+//     });
+// }
 
-if (program.host) {
-    const host = program.host;
-    crtMgr.getCertificate(program.host, (error, keyContent, crtContent) => {
-        if (error) {
-            if (error === Errors.ROOT_CA_NOT_EXISTS) {
-                console.log(color.cyan('Run "certmanager -r" to generate rootCA in advance'));
-                console.log(color.cyan('*** PLEASE INSTALL AND TRUST THE ROOT CA ***\n'));
-                return;
-            }
+// if (program.host) {
+//     const host = program.host;
+//     crtMgr.getCertificate(program.host, (error, keyContent, crtContent) => {
+//         if (error) {
+//             if (error === Errors.ROOT_CA_NOT_EXISTS) {
+//                 console.log(color.cyan('Run "certmanager -r" to generate rootCA in advance'));
+//                 console.log(color.cyan('*** PLEASE INSTALL AND TRUST THE ROOT CA ***\n'));
+//                 return;
+//             }
 
-            console.log(color.red('Failed to get certifcate for host: ' + host));
-            console.error(error);
-        } else {
-            console.log(color.cyan('certifcate for host: ' + host + ' fetched'));
-            console.log(color.cyan('the key is:\n' + keyContent));
-            console.log(color.cyan('the crt is:\n' + crtContent));
-        }
-    });
-}
+//             console.log(color.red('Failed to get certifcate for host: ' + host));
+//             console.error(error);
+//         } else {
+//             console.log(color.cyan('certifcate for host: ' + host + ' fetched'));
+//             console.log(color.cyan('the key is:\n' + keyContent));
+//             console.log(color.cyan('the crt is:\n' + crtContent));
+//         }
+//     });
+// }
 
-if (program.dirPath) {
-    const dirPath = crtMgr.getRootDirPath();
-    console.log(color.cyan(dirPath));
-}
+// if (program.dirPath) {
+//     const dirPath = crtMgr.getRootDirPath();
+//     console.log(color.cyan(dirPath));
+// }
