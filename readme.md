@@ -7,8 +7,17 @@ const CertManager = require('cert-manager');
 
 const options = {
   rootDirName: '.certmanager_custom', // default to .certmanager_certs
-  rootDirPath: '/the/full/path/of/the/dir' // if specified, the instance will take this as root dir
+  rootDirPath: '/the/full/path/of/the/dir', // if specified, the instance will take this as root dir
+  // the default attrs of a generated cert, you can change it here
+  defaultCertAttrs: [
+    { name: 'countryName', value: 'CN' },
+    { name: 'organizationName', value: 'CertManager' },
+    { shortName: 'ST', value: 'SH' },
+    { shortName: 'OU', value: 'CertManager SSL' }
+  ]
 }
+
+const crtMgr = new CertManager(options);
 
 crtMgr.generateRootCA();
 ```
@@ -25,15 +34,35 @@ crtMgr.generateRootCA();
 如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下
 
 # 方法
-### generateRootCA(callback(error))
+### generateRootCA(commonName, callback(error))
 在证书根目录下面生成根证书rootCA.crt 和 rootCA.key。生成后，请选择rootCA.crt,**安装并信任**，否则您的组件可能工作失败。
 
 #### 返回
 - 无
 
 #### 参数
-- callback `function`
+- commonName `string` `optional`
+`default`: CertManager
+根证书的commonName，安装后，将会作为系统里面的证书名称显示
+
+- callback `function` `optional`
 回调函数，将在结束后被调用，如果有异常，异常将作为第一个参数传入
+
+#### 调用示例
+
+```js
+// 使用默认值，且省略回传
+crtMgr.generateRootCA();
+
+// 使用自定义的commonName
+crtMgr.generateRootCA('customName');
+
+// 使用默认的commonName, 且传入回调函数
+crtMgr.generateRootCA(callback(error));
+
+// 使用自定义的commonName，且传入回调
+crtMgr.generateRootCA('customName', callback(error));
+```
 
 ### getCertificate(hostname, callback([error, keyContent, crtContent]))
 获取指定域名下的证书的key和crt内容，如果证书还不存在，则会先创建该证书

@@ -22,15 +22,17 @@ function getKeysAndCert(serialNumber){
   };
 }
 
-function generateRootCA(){
+function generateRootCA(commonName){
   var keysAndCert = getKeysAndCert();
   keys = keysAndCert.keys;
   cert = keysAndCert.cert;
 
+  commonName = commonName || 'CertManager';
+
   var attrs = defaultAttrs.concat([
     {
       name: 'commonName',
-      value: 'CertManager'
+      value: commonName
     }
   ]);
   cert.setSubject(attrs);
@@ -87,5 +89,11 @@ function generateCertsForHostname(domain, rootCAConfig){
   };
 }
 
+// change the default attrs
+function setDefaultAttrs (attrs) {
+    defaultAttrs = attrs;
+}
+
 module.exports.generateRootCA = generateRootCA;
 module.exports.generateCertsForHostname = generateCertsForHostname;
+module.exports.setDefaultAttrs = setDefaultAttrs;

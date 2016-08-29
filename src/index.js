@@ -1,3 +1,5 @@
+delete require.cache['./certGenerator'];
+
 var exec = require('child_process').exec,
     spawn         = require('child_process').spawn,
     path          = require("path"),
@@ -15,6 +17,10 @@ function CertManager (options) {
     options = options || {};
     var rootDirName = options.rootDirName || util.getDefaultRootDirName();
     var rootDirPath  = options.rootDirPath || path.join(util.getUserHome(),"/" + rootDirName + "/");
+
+    if (options.defaultCertAttrs) {
+        certGenerator.setDefaultAttrs(options.defaultCertAttrs);
+    }
 
     var isWin             = /^win/.test(process.platform),
         certDir           = rootDirPath,
@@ -87,7 +93,11 @@ function CertManager (options) {
         return (fs.existsSync(rootCAcrtFilePath) && fs.existsSync(rootCAkeyFilePath));
     }
 
-    function generateRootCA(certCallback){
+    function generateRootCA(commonName, certCallback){
+        if (commonName && !certCallback) {
+            certCallback = commonName;
+            commonName = '';
+        }
         if(isRootCAFileExists()){
             console.log(color.yellow("rootCA exists at " + certDir));
             var rl = readline.createInterface({
@@ -97,7 +107,7 @@ function CertManager (options) {
 
             rl.question("do you really want to generate a new one ?)(yes/NO)", function(answer) {
                 if(/yes/i.test(answer)){
-                    startGenerating(certCallback);
+                    startGenerating(commonName, certCallback);
                 }else{
                     console.log("will not generate a new one");
                     process.exit(0);
@@ -106,16 +116,16 @@ function CertManager (options) {
                 rl.close();
             });
         }else{
-            startGenerating(certCallback);
+            startGenerating(commonName, certCallback);
         }
 
-        function startGenerating(certCallback){
+        function startGenerating(commonName, certCallback){
             //clear old certs
             clearCerts(function(error){
                 console.log(color.red(error));
                 console.log(color.green("temp certs cleared"));
                 try{
-                    var result = certGenerator.generateRootCA();
+                    var result = certGenerator.generateRootCA(commonName);
                     fs.writeFileSync(rootCAkeyFilePath, result.privateKey);
                     fs.writeFileSync(rootCAcrtFilePath, result.certificate);
 
