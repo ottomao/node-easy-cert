@@ -111,3 +111,15 @@ crtMgr.generateRootCA('customName', callback(error));
 
 - `ROOT_CA_NOT_EXISTS`
 root根证书不存在。当我们执行的某个操作依赖于根证书，而根证书不存在时，就会抛出该异常。我们可以尝试生成根证书
+
+# 作为命令行运行
+当全局安装本组件的时候，您可以在命令行运行常用功能。目前支持如下命令：
+
+- `certmanager -r`
+在默认路径下生成根证书
+
+- `certmanager -h {hostname}`
+生成指定hostname的证书，如果还没有生成根证书，请先生成根证书
+
+- `certmanager -d`
+打印证书的根目录
