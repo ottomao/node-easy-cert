@@ -36,6 +36,11 @@ describe('Test Cert Manager', () => {
 
 
     function beginTest (certMgr, rootDirPath) {
+        it('isRootCAFileExists', () => {
+            const path = rootDirPath + '/rootCA.crt';
+            expect(certMgr.isRootCAFileExists()).toBe(false);
+        });
+
         it('generateRootCA', (done) => {
             bddstdin('yes\n');
 
@@ -51,6 +56,11 @@ describe('Test Cert Manager', () => {
                     });
                 }
             });
+        });
+
+        it('isRootCAFileExists', () => {
+            const path = rootDirPath + '/rootCA.crt';
+            expect(certMgr.isRootCAFileExists()).toBe(true);
         });
 
         it('getRootCAFilePath', () => {
