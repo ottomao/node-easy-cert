@@ -15,7 +15,7 @@ var exec = require('child_process').exec,
 
 function CertManager (options) {
     options = options || {};
-    var rootDirName = options.rootDirName || util.getDefaultRootDirName();
+    var rootDirName = util.getDefaultRootDirName();
     var rootDirPath  = options.rootDirPath || path.join(util.getUserHome(),"/" + rootDirName + "/");
 
     if (options.defaultCertAttrs) {
@@ -85,7 +85,7 @@ function CertManager (options) {
         if(isWin){
             exec("del * /q",{ cwd : certDir },cb);
         }else{
-            exec("rm *.key *.csr *.crt *.srl .DS_Store",{ cwd : certDir },cb);
+            exec("rm -f *.key *.csr *.crt *.srl .DS_Store",{ cwd : certDir },cb);
         }
     }
 
@@ -93,36 +93,29 @@ function CertManager (options) {
         return (fs.existsSync(rootCAcrtFilePath) && fs.existsSync(rootCAkeyFilePath));
     }
 
-    function generateRootCA(commonName, certCallback){
-        if (commonName && !certCallback) {
-            certCallback = commonName;
-            commonName = '';
+    function generateRootCA(options, certCallback){
+        console.log('options.commonName is:', options.commonName);
+        if (!options || !options.commonName) {
+            console.error(color.red('The "options.commonName" for rootCA is required, please specify.'));
+            certCallback(Errors.ROOT_CA_COMMON_NAME_UNSPECIFIED);
+            return;
         }
+
         if(isRootCAFileExists()){
-            console.log(color.yellow("rootCA exists at " + certDir));
-            var rl = readline.createInterface({
-                input : process.stdin,
-                output: process.stdout
-            });
-
-            rl.question("do you really want to generate a new one ?)(yes/NO)", function(answer) {
-                if(/yes/i.test(answer)){
-                    startGenerating(commonName, certCallback);
-                }else{
-                    console.log("will not generate a new one");
-                    process.exit(0);
-                }
-
-                rl.close();
-            });
+            if (options.overwrite) {
+                startGenerating(options.commonName, certCallback);
+            } else {
+                console.error(color.red('The rootCA exists already, if you want to overwrite it, please specify the "options.overwrite=true"'));
+                certCallback(Errors.ROOT_CA_EXISTED);
+                return;
+            }
         }else{
-            startGenerating(commonName, certCallback);
+            startGenerating(options.commonName, certCallback);
         }
 
         function startGenerating(commonName, certCallback){
             //clear old certs
             clearCerts(function(error){
-                console.log(color.red(error));
                 console.log(color.green("temp certs cleared"));
                 try{
                     var result = certGenerator.generateRootCA(commonName);
@@ -132,12 +125,7 @@ function CertManager (options) {
                     console.log(color.green("rootCA generated"));
                     console.log(color.green(color.bold("PLEASE TRUST the rootCA.crt in " + certDir)));
 
-                    if(isWin){
-                        exec("start .",{ cwd : certDir });
-                    }else{
-                        exec("open .",{ cwd : certDir });
-                    }
-                    certCallback && certCallback();
+                    certCallback && certCallback(null, rootCAkeyFilePath, rootCAcrtFilePath);
                 }catch(e){
                     console.log(color.red(e));
                     console.log(color.red(e.stack));

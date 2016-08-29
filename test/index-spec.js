@@ -2,6 +2,7 @@ const CertManager = require('../src/index.js');
 const util = require('../src/util.js');
 const fs = require('fs');
 const bddstdin = require('bdd-stdin');
+const path = require('path');
 
 describe('Test Cert Manager', () => {
     beforeAll(() => {
@@ -14,22 +15,12 @@ describe('Test Cert Manager', () => {
         beginTest(certMgr, rootDirPath);
     });
 
-    describe('RootDirName with rootDirName .certmanager_certs_test', () => {
+    describe('RootDirName with fullRootDir /temp/.certmanager_certs_fulldir', () => {
         const options = {
-            rootDirName: '.certmanager_certs_test'
+            rootDirPath: '/temp/.certmanager_certs_fulldir/'
         };
         const certMgr = new CertManager(options);
-        const rootDirPath = util.getUserHome() + '/.certmanager_certs_test/';
-
-        beginTest(certMgr, rootDirPath);
-    });
-
-    describe('RootDirName with fullRootDir /Users/wangweijie/.certmanager_certs_fulldir', () => {
-        const options = {
-            rootDirPath: '/Users/wangweijie/.certmanager_certs_fulldir'
-        };
-        const certMgr = new CertManager(options);
-        const rootDirPath = util.getUserHome() + '/.certmanager_certs_fulldir/';
+        const rootDirPath = '/temp/.certmanager_certs_fulldir/';
 
         beginTest(certMgr, rootDirPath);
     });
@@ -37,14 +28,16 @@ describe('Test Cert Manager', () => {
 
     function beginTest (certMgr, rootDirPath) {
         it('isRootCAFileExists', () => {
-            const path = rootDirPath + '/rootCA.crt';
             expect(certMgr.isRootCAFileExists()).toBe(false);
         });
 
         it('generateRootCA with common Name', (done) => {
-            bddstdin('yes\n');
+            const options = {
+                commonName: 'testRootCA',
+                overwrite: true
+            };
 
-            certMgr.generateRootCA('testName', (error) => {
+            certMgr.generateRootCA(options, (error) => {
                 if (!error) {
                     fs.stat(rootDirPath + 'rootCA.crt', (e) => {
                         if (!e) {
@@ -54,29 +47,14 @@ describe('Test Cert Manager', () => {
                             done.fail('failed to generate root ca');
                         }
                     });
-                }
-            });
-        });
-
-        it('generateRootCA', (done) => {
-            bddstdin('yes\n');
-
-            certMgr.generateRootCA((error) => {
-                if (!error) {
-                    fs.stat(rootDirPath + 'rootCA.crt', (e) => {
-                        if (!e) {
-                            done();
-                        } else {
-                            console.error(e);
-                            done.fail('failed to generate root ca');
-                        }
-                    });
+                } else {
+                    console.error(error);
+                    done.fail('failed to generate root CA');
                 }
             });
         });
 
         it('isRootCAFileExists', () => {
-            const path = rootDirPath + '/rootCA.crt';
             expect(certMgr.isRootCAFileExists()).toBe(true);
         });
 
@@ -92,8 +70,8 @@ describe('Test Cert Manager', () => {
 
         it('getCertificate', (done) => {
             certMgr.getCertificate('localhost', () => {
-                const path = rootDirPath + '/localhost.crt';
-                fs.stat(path, (error) => {
+                const filePath = path.join(rootDirPath + '/localhost.crt');
+                fs.stat(filePath, (error) => {
                     if (!error) {
                         done();
                     } else {
