@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A tool for managing self-signed certifications",
   "main": "src/index.js",
+  "bin": {
+    "certmanager": "bin.js"
+  },
   "scripts": {
     "test": "sh test/test.sh"
   },
@@ -19,6 +22,7 @@
   "dependencies": {
     "async-task-mgr": "^1.1.0",
     "colorful": "^2.1.0",
+    "commander": "^2.9.0",
     "node-forge": "^0.6.42"
   },
   "devDependencies": {
