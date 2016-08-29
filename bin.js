@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const crtMgr = require('./src/index.js')();
+const Errors = require('./src/errorConstants.js');
 const program = require('commander');
 const packageInfo = require('./package.json');
 const color = require('colorful');
@@ -28,6 +29,12 @@ if (program.host) {
     const host = program.host;
     crtMgr.getCertificate(program.host, (error, keyContent, crtContent) => {
         if (error) {
+            if (error === Errors.ROOT_CA_NOT_EXISTS) {
+                console.log(color.cyan('Run "certmanager -r" to generate rootCA in advance'));
+                console.log(color.cyan('*** PLEASE INSTALL AND TRUST THE ROOT CA ***\n'));
+                return;
+            }
+
             console.log(color.red('Failed to get certifcate for host: ' + host));
             console.error(error);
         } else {
@@ -40,5 +47,5 @@ if (program.host) {
 
 if (program.dirPath) {
     const dirPath = crtMgr.getRootDirPath();
-    console.log(color.cyan('the dir path for certifcate is: ' + dirPath));
+    console.log(color.cyan(dirPath));
 }
