@@ -4,7 +4,7 @@ var defaultAttrs = [
     { name: 'countryName', value: 'CN' },
     { name: 'organizationName', value: 'CertManager' },
     { shortName: 'ST', value: 'SH' },
-    { shortName: 'OU', value: 'CertManager SSL'}
+    { shortName: 'OU', value: 'CertManager SSL' }
 ];
 
 function getKeysAndCert(serialNumber){
