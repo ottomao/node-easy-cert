@@ -7,6 +7,7 @@ var exec = require('child_process').exec,
     readline      = require('readline'),
     certGenerator = require("./certGenerator"),
     util          = require('./util'),
+    Errors        = require('./errorConstants'),
     asyncTask     = require("async-task-mgr");
 
 
@@ -34,7 +35,11 @@ function CertManager (options) {
     }
 
     function getCertificate(hostname,certCallback){
-        _checkRootCA();
+        if (!_checkRootCA()) {
+            console.log(color.yellow('please generate root CA before getting certificate for sub-domains'));
+            certCallback && certCallback(Errors.ROOT_CA_NOT_EXISTS);
+            return;
+        }
         var keyFile = path.join(certDir , "__hostname.key".replace(/__hostname/,hostname) ),
             crtFile = path.join(certDir , "__hostname.crt".replace(/__hostname/,hostname) );
 
@@ -122,12 +127,12 @@ function CertManager (options) {
                     }else{
                         exec("open .",{ cwd : certDir });
                     }
-                    certCallback();
+                    certCallback && certCallback();
                 }catch(e){
                     console.log(color.red(e));
                     console.log(color.red(e.stack));
                     console.log(color.red("fail to generate root CA"));
-                    certCallback(e);
+                    certCallback && certCallback(e);
                 }
             });
         }
@@ -143,15 +148,16 @@ function CertManager (options) {
 
     function _checkRootCA(){
         if (rootCAExists) {
-            return;
+            return true;
         }
 
         if(!isRootCAFileExists()){
             console.log(color.red("can not find rootCA.crt or rootCA.key"));
-            console.log(color.red("you may generate one by the following methods"));
-            process.exit(0);
+            console.log(color.red("you may generate one"));
+            return false;
         } else{
             rootCAExists = true;
+            return true;
         }
     }
 
