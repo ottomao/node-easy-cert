@@ -2,9 +2,9 @@ var forge = require('node-forge');
 
 var defaultAttrs = [
     { name: 'countryName', value: 'CN' },
-    { name: 'organizationName', value: 'CertManager' },
+    { name: 'organizationName', value: 'EasyCert' },
     { shortName: 'ST', value: 'SH' },
-    { shortName: 'OU', value: 'CertManager SSL' }
+    { shortName: 'OU', value: 'EasyCert SSL' }
 ];
 
 function getKeysAndCert(serialNumber){

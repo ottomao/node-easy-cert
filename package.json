@@ -1,5 +1,5 @@
 {
-  "name": "cert-manager",
+  "name": "node-easy-cert",
   "version": "1.0.0",
   "description": "A tool for managing self-signed certifications",
   "main": "src/index.js",
