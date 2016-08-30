@@ -17,20 +17,20 @@ const options = {
 }
 
 const crtMgr = new CertManager(options);
+const rootOptions = {
+  commonName: 'theNameYouLike'
+};
 
-crtMgr.generateRootCA();
+crtMgr.generateRootCA(rootOptions);
 ```
 # 配置项(可选)
-
-## rootDirName
-证书的根目录名，默认放在 `user_home` 的目录下
 
 ## rootDirPath
 证书目录的全路径，如果配置，优先级高于rootDirName
 
 # 证书生成目录
-默认情况下，证书都会生成在 `{USER_HOME}/{ROOT_NAME}/`,  其中`ROOT_NAME` 默认为 *.node_easy_certs*。
-如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下
+默认情况下，证书都会生成在 `{USER_HOME}/.node_easy_certs/`。
+如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下。
 
 # 方法
 ### generateRootCA(options, callback(error, keyPath, crtPath))
@@ -42,12 +42,15 @@ crtMgr.generateRootCA();
 #### 参数
 - options `object`
   - options.commonName `string` 'required'
+
   rootCA的commonName，安装后，将会作为系统里面的证书名称显示在列表中
   - options.overwrite `bool` `optional`
+
   `default`: false
   是否覆盖已经存在的rootCA，默认为false。在false的情形下，如果遇到已经存在的rootCA，会返回错误 `ROOT_CA_EXISTED` 并终止创建。
 
 - callback `function` `optional`
+
   - error 如果发生错误，将放入error参数
   - keyPath 生成好的rootCA.key的全路径
   - crtPath 生成好的rootCA.crt的全路径
@@ -113,13 +116,15 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 获取由当前cert-manager实例所管理的证书的根目录
 
 #### 返回
-- `string` 当前cert-manager实例所管理的证书所对应的根目录。默认为{USER_HOME}/.node_easy_certs/
+- `string`
+当前cert-manager实例所管理的证书所对应的根目录。默认为{USER_HOME}/.node_easy_certs/
 
 ### getRootCAFilePath()
 获取根证书的全路径
 
 #### 返回
-- `string` 根证书的全路径，如果根证书不存在，将返回空字符串
+- `string`
+根证书的全路径，如果根证书不存在，将返回空字符串
 
 ### isRootCAFileExists()
 获取根证书是否存在的状态
