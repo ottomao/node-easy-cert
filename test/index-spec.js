@@ -15,18 +15,25 @@ describe('Test Cert Manager', () => {
         beginTest(certMgr, rootDirPath);
     });
 
-    describe('RootDirName with fullRootDir /temp/.certmanager_certs_fulldir', () => {
+    describe('RootDirName with fullRootDir ./.temp_certs/', () => {
+        const rootDirPath = path.join(__dirname, './.temp_certs/');
         const options = {
-            rootDirPath: '/temp/.certmanager_certs_fulldir/'
+            rootDirPath: rootDirPath
         };
         const certMgr = new CertManager(options);
-        const rootDirPath = '/temp/.certmanager_certs_fulldir/';
+
 
         beginTest(certMgr, rootDirPath);
     });
 
 
     function beginTest (certMgr, rootDirPath) {
+        try {
+            certMgr.clearCerts();
+        } catch(e) {
+            console.log(e);
+        }
+
         it('isRootCAFileExists', () => {
             expect(certMgr.isRootCAFileExists()).toBe(false);
         });
