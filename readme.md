@@ -41,13 +41,13 @@ crtMgr.generateRootCA(rootOptions);
 
 #### 参数
 - options `object`
-  - options.commonName `string` 'required'
+  - options.commonName `string` `required`
 
   rootCA的commonName，安装后，将会作为系统里面的证书名称显示在列表中
   - options.overwrite `bool` `optional`
 
-  `default`: false
-  是否覆盖已经存在的rootCA，默认为false。在false的情形下，如果遇到已经存在的rootCA，会返回错误 `ROOT_CA_EXISTED` 并终止创建。
+  `default`: false   
+  > 是否覆盖已经存在的rootCA，默认为false。在false的情形下，如果遇到已经存在的rootCA，会返回错误 `ROOT_CA_EXISTED` 并终止创建。
 
 - callback `function` `optional`
 
@@ -93,8 +93,9 @@ crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
 - `hostname` `string`
 所要获取证书内容的hostname
 
-- `callback` `function`
+- `callback` `function`   
 获取到内容后的回调函数，主要包含key的内容和crt的内容，如果获取过程中出现异常，则放入error变量中
+
 > 获取子域名的证书，要求已经存在根证书，否则会提示失败。组件会抛出对应的异常。您可以捕获并通过 `generateRootCA()`来生成根证书。**并安装并请信任该根证书**
 
 #### 调用实例
@@ -116,8 +117,8 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 获取由当前cert-manager实例所管理的证书的根目录
 
 #### 返回
-- `string`
-当前cert-manager实例所管理的证书所对应的根目录。默认为{USER_HOME}/.node_easy_certs/
+- `string`   
+  当前cert-manager实例所管理的证书所对应的根目录。默认为{USER_HOME}/.node_easy_certs/
 
 ### getRootCAFilePath()
 获取根证书的全路径
@@ -139,18 +140,15 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 - 无
 
 #### 参数
-- `callback`  `function`
+- `callback`  `function`   
 删除结束后的回调函数，如果删除过程中有错误，将会被放入error对象中
 
 # 错误码
 在运行过程中，会根据错误原因抛出指定错误码，包括如下
 
-- `ROOT_CA_NOT_EXISTS`
-root根证书不存在。当我们执行的某个操作依赖于根证书，而根证书不存在时，就会抛出该异常。我们可以尝试生成根证书
+| 错误码        | 释义           | 备注|
+| ------------- |:-------------:|:----------:|
+|ROOT_CA_NOT_EXISTS   |root根证书不存在。当我们执行的某个操作依赖于根证书，而根证书不存在时，就会抛出该异常。我们可以尝试生成根证书||
+|ROOT_CA_COMMON_NAME_UNSPECIFIED| commonName未设置。比如当我们调用`genearteRootCA()`时,commonName是必传的。||
+|ROOT_CA_EXISTED |rootCA 根证书已经存在。当我们重新生成证书，如果证书已经存在，会抛出该异常。|可以在调用`generateRootCA`时，传入 `option.overwirte=true`来覆盖|
 
-- `ROOT_CA_COMMON_NAME_UNSPECIFIED`
-commonName未设置。比如当我们调用`genearteRootCA()`时,commonName是必传的。
-
-- `ROOT_CA_EXISTED`
-rootCA 根证书已经存在。当我们重新生成证书，如果证书已经存在，会抛出该异常。
-> 可以在调用`generateRootCA`时，传入 `option.overwirte=true`来覆盖
