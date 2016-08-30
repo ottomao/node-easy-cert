@@ -6,7 +6,7 @@
 const CertManager = require('cert-manager');
 
 const options = {
-  rootDirPath: '/the/full/path/of/the/dir', // default to /{USER_HOME}/{.certmanager_certs}/
+  rootDirPath: '/the/full/path/of/the/dir', // default to /{USER_HOME}/{.node_easy_certs}/
   // the default attrs of a generated cert, you can change it here
   defaultCertAttrs: [
     { name: 'countryName', value: 'CN' },
@@ -29,7 +29,7 @@ crtMgr.generateRootCA();
 证书目录的全路径，如果配置，优先级高于rootDirName
 
 # 证书生成目录
-默认情况下，证书都会生成在 `{USER_HOME}/{ROOT_NAME}/`,  其中`ROOT_NAME` 默认为 *.certmanager_certs*。
+默认情况下，证书都会生成在 `{USER_HOME}/{ROOT_NAME}/`,  其中`ROOT_NAME` 默认为 *.node_easy_certs*。
 如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下
 
 # 方法
@@ -113,7 +113,7 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 获取由当前cert-manager实例所管理的证书的根目录
 
 #### 返回
-- `string` 当前cert-manager实例所管理的证书所对应的根目录。默认为{USER_HOME}/.certmanager_certs/
+- `string` 当前cert-manager实例所管理的证书所对应的根目录。默认为{USER_HOME}/.node_easy_certs/
 
 ### getRootCAFilePath()
 获取根证书的全路径

@@ -3,5 +3,5 @@ module.exports.getUserHome = function () {
 };
 
 module.exports.getDefaultRootDirName = function () {
-    return '.certmanager_certs';
+    return '.node_easy_certs';
 };
