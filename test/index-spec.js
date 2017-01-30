@@ -90,19 +90,16 @@ describe('Test Cert Manager', () => {
         });
 
         it('clearCerts', (done) => {
-            certMgr.clearCerts(() => {
-                fs.rmdir(rootDirPath, (error) => {
-                    if (error) {
-                        console.error('root dir path is:', error);
-                        done.fail('failed to clear certs');
-
-                    } else {
-                        done();
-                    }
-                });
+            certMgr.clearCerts();            
+            fs.rmdir(rootDirPath, (error) => {
+                if (error) {
+                    console.error('root dir path is:', error);
+                    done.fail('failed to clear certs');
+                } else {
+                    done();
+                }
             });
         });
     }
-
 });
 

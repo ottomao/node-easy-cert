@@ -133,7 +133,7 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 #### 返回
 - `bool` 是否存在根证书
 
-### clearCerts(callback(error))
+### clearCerts()
 清除当前目录下所有的证书文件
 
 #### 返回

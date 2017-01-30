@@ -82,11 +82,8 @@ function CertManager (options) {
     }
 
     function clearCerts(cb){
-        if(isWin){
-            exec("del * /q",{ cwd : certDir },cb);
-        }else{
-            exec("rm -f *.key *.csr *.crt *.srl .DS_Store",{ cwd : certDir },cb);
-        }
+        util.deleteFolderRecursive(certDir);
+        cb && cb();
     }
 
     function isRootCAFileExists(){
@@ -94,7 +91,6 @@ function CertManager (options) {
     }
 
     function generateRootCA(options, certCallback){
-        console.log('options.commonName is:', options.commonName);
         if (!options || !options.commonName) {
             console.error(color.red('The "options.commonName" for rootCA is required, please specify.'));
             certCallback(Errors.ROOT_CA_COMMON_NAME_UNSPECIFIED);
