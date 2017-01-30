@@ -59,7 +59,7 @@ crtMgr.generateRootCA(rootOptions);
 
 ```js
 const options = {
-  commonName: 'yourPreferrence'
+  commonName: 'yourPreference'
 };
 
 crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
