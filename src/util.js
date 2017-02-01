@@ -10,7 +10,7 @@ function deleteFolderContentsRecursive(dirPath) {
     fs.readdirSync(dirPath).forEach(function(file,index){
       var curPath = path.join(dirPath, file);
       if(fs.lstatSync(curPath).isDirectory()) {
-        deleteFolderRecursive(curPath);
+        deleteFolderContentsRecursive(curPath);
       } else { // delete all files
         fs.unlinkSync(curPath);
       }
