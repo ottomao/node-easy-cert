@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 
-function deleteFolderRecursive(dirPath) {
+function deleteFolderContentsRecursive(dirPath) {
   if(!dirPath.trim() || dirPath === '/'){
       throw new Error('can_not_delete_this_dir');
   }
@@ -28,4 +28,4 @@ module.exports.getDefaultRootDirName = function () {
     return '.node_easy_certs';
 };
 
-module.exports.deleteFolderRecursive = deleteFolderRecursive;
+module.exports.deleteFolderContentsRecursive = deleteFolderContentsRecursive;

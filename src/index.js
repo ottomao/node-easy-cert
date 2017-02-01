@@ -82,7 +82,7 @@ function CertManager (options) {
     }
 
     function clearCerts(cb){
-        util.deleteFolderRecursive(certDir);
+        util.deleteFolderContentsRecursive(certDir);
         cb && cb();
     }
 
