@@ -10,8 +10,9 @@ var exec = require('child_process').exec,
     certGenerator = require("./certGenerator"),
     util          = require('./util'),
     Errors        = require('./errorConstants'),
-    asyncTask     = require("async-task-mgr");
-
+    https = require('https'),
+    asyncTask     = require("async-task-mgr"),
+    exec = require('child_process').exec;
 
 function CertManager (options) {
     options = options || {};
@@ -40,7 +41,7 @@ function CertManager (options) {
         }
     }
 
-    function getCertificate(hostname,certCallback){
+    function getCertificate(hostname, certCallback){
         if (!_checkRootCA()) {
             console.log(color.yellow('please generate root CA before getting certificate for sub-domains'));
             certCallback && certCallback(Errors.ROOT_CA_NOT_EXISTS);
@@ -155,16 +156,59 @@ function CertManager (options) {
         }
     }
 
+    // TODO: getFreeport
+    function ifRootCATrusted(callback){
+        if (!isRootCAFileExists()){
+            callback && callback(new Error('ROOTCA_NOT_EXIST'));
+        } else {
+            const HTTPS_RESPONSE = 'HTTPS Server is ON';
+            // local.anyproxy.io --> 127.0.0.1
+            getCertificate('local.anyproxy.io', function(e, key, cert){
+                if (e) {
+                    callback && callback(e);
+                    return ;
+                }
+                const server = https.createServer({
+                    ca: fs.readFileSync(rootCAcrtFilePath),
+                    key,
+                    cert,
+                }, function(req, res){
+                    res.end(HTTPS_RESPONSE);
+                }).listen(9999);
+
+                // do not use node.http to test the cert
+                // ref: https://github.com/nodejs/node/issues/4175
+                // TODO: test in windows
+                const testCmd = 'curl https://local.anyproxy.io:9999';
+                exec(testCmd, {
+                    timeout: 1000
+                }, (error, stdout, stderr) => {
+                    server.close();
+                    if (stdout && stdout.indexOf(HTTPS_RESPONSE) >= 0) {
+                        callback && callback(null, true);
+                    } else {
+                        callback && callback(null, false);
+                    }
+                });
+            });
+        }
+    }
+
     return {
         getRootCAFilePath: getRootCAFilePath,
         generateRootCA: generateRootCA,
         getCertificate: getCertificate,
         clearCerts: clearCerts,
         isRootCAFileExists: isRootCAFileExists,
-        getRootDirPath: getRootDirPath
+        ifRootCATrusted,
+        getRootDirPath: getRootDirPath,
     };
 }
 
-
+// var certMgr = new CertManager();
+// certMgr.ifRootCATrusted(function(err, ifTusted){
+//     console.log(err);
+//     console.log('ifTrusted', ifTusted);
+// });
 
 module.exports = CertManager;

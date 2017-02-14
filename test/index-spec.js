@@ -11,7 +11,7 @@ describe('Test Cert Manager', () => {
 
     describe('Default Cert Manager', () => {
         const certMgr = new CertManager();
-        const rootDirPath = util.getUserHome() + '/' + util.getDefaultRootDirName() + '/';
+        const rootDirPath = path.resolve(util.getUserHome(), util.getDefaultRootDirName(), './');
         beginTest(certMgr, rootDirPath);
     });
 
@@ -21,7 +21,6 @@ describe('Test Cert Manager', () => {
             rootDirPath: rootDirPath
         };
         const certMgr = new CertManager(options);
-
 
         beginTest(certMgr, rootDirPath);
     });
@@ -46,7 +45,7 @@ describe('Test Cert Manager', () => {
 
             certMgr.generateRootCA(options, (error) => {
                 if (!error) {
-                    fs.stat(rootDirPath + 'rootCA.crt', (e) => {
+                    fs.stat(path.resolve(rootDirPath,'./rootCA.crt'), (e) => {
                         if (!e) {
                             done();
                         } else {
@@ -67,12 +66,12 @@ describe('Test Cert Manager', () => {
 
         it('getRootCAFilePath', () => {
             const filePath = certMgr.getRootCAFilePath();
-            expect(filePath).toEqual(rootDirPath + 'rootCA.crt');
+            expect(filePath).toEqual(path.resolve(rootDirPath, './rootCA.crt'));
         });
 
         it('getRootDirPath', () => {
             const filePath = certMgr.getRootCAFilePath();
-            expect(filePath).toEqual(rootDirPath + 'rootCA.crt');
+            expect(filePath).toEqual(path.resolve(rootDirPath, './rootCA.crt'));
         });
 
         it('getCertificate', (done) => {
@@ -86,6 +85,18 @@ describe('Test Cert Manager', () => {
                         done.fail('cert generated failed');
                     }
                 });
+            });
+        });
+
+        it('ifRootCATrusted', (done) => {
+            certMgr.ifRootCATrusted((error, ifTrusted) => {
+                if (!error) {
+                    console.log('ifTrusted:', ifTrusted);
+                    done();
+                } else {
+                    console.error(error);
+                    done.fail('failed to check CA status');
+                }
             });
         });
 
