@@ -1,15 +1,15 @@
-var forge = require('node-forge');
+const forge = require('node-forge');
 
-var defaultAttrs = [
-    { name: 'countryName', value: 'CN' },
-    { name: 'organizationName', value: 'EasyCert' },
-    { shortName: 'ST', value: 'SH' },
-    { shortName: 'OU', value: 'EasyCert SSL' }
+let defaultAttrs = [
+  { name: 'countryName', value: 'CN' },
+  { name: 'organizationName', value: 'EasyCert' },
+  { shortName: 'ST', value: 'SH' },
+  { shortName: 'OU', value: 'EasyCert SSL' }
 ];
 
-function getKeysAndCert(serialNumber){
-  var keys = forge.pki.rsa.generateKeyPair(1024);
-  var cert = forge.pki.createCertificate();
+function getKeysAndCert(serialNumber) {
+  const keys = forge.pki.rsa.generateKeyPair(1024);
+  const cert = forge.pki.createCertificate();
   cert.publicKey = keys.publicKey;
   cert.serialNumber = serialNumber || (Math.floor(Math.random() * 100000) + '');
   cert.validity.notBefore = new Date();
@@ -17,19 +17,19 @@ function getKeysAndCert(serialNumber){
   cert.validity.notAfter = new Date();
   cert.validity.notAfter.setFullYear(cert.validity.notAfter.getFullYear() + 10); // 10 years
   return {
-    keys: keys,
-    cert: cert
+    keys,
+    cert
   };
 }
 
-function generateRootCA(commonName){
-  var keysAndCert = getKeysAndCert();
-  keys = keysAndCert.keys;
-  cert = keysAndCert.cert;
+function generateRootCA(commonName) {
+  const keysAndCert = getKeysAndCert();
+  const keys = keysAndCert.keys;
+  const cert = keysAndCert.cert;
 
   commonName = commonName || 'CertManager';
 
-  var attrs = defaultAttrs.concat([
+  const attrs = defaultAttrs.concat([
     {
       name: 'commonName',
       value: commonName
@@ -38,12 +38,12 @@ function generateRootCA(commonName){
   cert.setSubject(attrs);
   cert.setIssuer(attrs);
   cert.setExtensions([
-    { name: 'basicConstraints', cA: true }
-    // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
-    // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
-    // { name: 'nsCertType', client: true, server: true, email: true, objsign: true, sslCA: true, emailCA: true, objCA: true },
-    // { name: 'subjectAltName', altNames: [ { type: 6, /* URI */ value: 'http://example.org/webid#me' }, { type: 7, /* IP */ ip: '127.0.0.1' } ] },
-    // { name: 'subjectKeyIdentifier' }
+  { name: 'basicConstraints', cA: true }
+  // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
+  // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
+  // { name: 'nsCertType', client: true, server: true, email: true, objsign: true, sslCA: true, emailCA: true, objCA: true },
+  // { name: 'subjectAltName', altNames: [ { type: 6, /* URI */ value: 'http://example.org/webid#me' }, { type: 7, /* IP */ ip: '127.0.0.1' } ] },
+  // { name: 'subjectKeyIdentifier' }
   ]);
 
   cert.sign(keys.privateKey, forge.md.sha256.create());
@@ -53,27 +53,24 @@ function generateRootCA(commonName){
     publicKey: forge.pki.publicKeyToPem(keys.publicKey),
     certificate: forge.pki.certificateToPem(cert)
   };
-
-  return pem;
 }
 
-function generateCertsForHostname(domain, rootCAConfig){
-
+function generateCertsForHostname(domain, rootCAConfig) {
   //generate a serialNumber for domain
-  var md = forge.md.md5.create();
+  const md = forge.md.md5.create();
   md.update(domain);
 
-  var keysAndCert = getKeysAndCert(md.digest().toHex());
-  keys = keysAndCert.keys;
-  cert = keysAndCert.cert;
+  const keysAndCert = getKeysAndCert(md.digest().toHex());
+  const keys = keysAndCert.keys;
+  const cert = keysAndCert.cert;
 
-  var caCert    = forge.pki.certificateFromPem(rootCAConfig.cert);
-  var caKey     = forge.pki.privateKeyFromPem(rootCAConfig.key);
+  const caCert = forge.pki.certificateFromPem(rootCAConfig.cert);
+  const caKey = forge.pki.privateKeyFromPem(rootCAConfig.key);
 
   // issuer from CA
   cert.setIssuer(caCert.subject.attributes);
 
-  var attrs = defaultAttrs.concat([
+  const attrs = defaultAttrs.concat([
     {
       name: 'commonName',
       value: domain
@@ -90,8 +87,8 @@ function generateCertsForHostname(domain, rootCAConfig){
 }
 
 // change the default attrs
-function setDefaultAttrs (attrs) {
-    defaultAttrs = attrs;
+function setDefaultAttrs(attrs) {
+  defaultAttrs = attrs;
 }
 
 module.exports.generateRootCA = generateRootCA;

@@ -1,211 +1,222 @@
 delete require.cache['./certGenerator'];
 
-var exec = require('child_process').exec,
-    spawn         = require('child_process').spawn,
-    path          = require("path"),
-    fs            = require("fs"),
-    os            = require("os"),
-    color         = require('colorful'),
-    readline      = require('readline'),
-    certGenerator = require("./certGenerator"),
-    util          = require('./util'),
-    Errors        = require('./errorConstants'),
-    https = require('https'),
-    asyncTask     = require("async-task-mgr"),
-    exec = require('child_process').exec;
+const path = require('path'),
+  fs = require('fs'),
+  color = require('colorful'),
+  certGenerator = require('./certGenerator'),
+  util = require('./util'),
+  Errors = require('./errorConstants'),
+  https = require('https'),
+  asyncTask = require('async-task-mgr'),
+  exec = require('child_process').exec;
 
-function CertManager (options) {
-    options = options || {};
-    var rootDirName = util.getDefaultRootDirName();
-    var rootDirPath  = options.rootDirPath || path.join(util.getUserHome(),"/" + rootDirName + "/");
+function getPort() {
+  return new Promise((resolve, reject) => {
+    const server = require('net').createServer();
+    server.unref();
+    server.on('error', reject);
+    server.listen(0, () => {
+      const port = server.address().port;
+      server.close(() => {
+        resolve(port);
+      });
+    });
+  });
+}
 
-    if (options.defaultCertAttrs) {
-        certGenerator.setDefaultAttrs(options.defaultCertAttrs);
+function CertManager(options) {
+  options = options || {};
+  const rootDirName = util.getDefaultRootDirName();
+  const rootDirPath = options.rootDirPath || path.join(util.getUserHome(), '/' + rootDirName + '/');
+
+  if (options.defaultCertAttrs) {
+    certGenerator.setDefaultAttrs(options.defaultCertAttrs);
+  }
+
+    //   isWin = /^win/.test(process.platform)
+  const certDir = rootDirPath,
+    rootCAcrtFilePath = path.join(certDir, 'rootCA.crt'),
+    rootCAkeyFilePath = path.join(certDir, 'rootCA.key'),
+    createCertTaskMgr = new asyncTask();
+  let cache_rootCACrtFileContent, 
+    cache_rootCAKeyFileContent;
+  let rootCAExists = false;
+
+  if (!fs.existsSync(certDir)) {
+    try {
+      fs.mkdirSync(certDir, '0777');
+    } catch (e) {
+      console.log('===========');
+      console.log('failed to create cert dir ,please create one by yourself - ' + certDir);
+      console.log('===========');
+    }
+  }
+
+  function getCertificate(hostname, certCallback) {
+    if (!_checkRootCA()) {
+      console.log(color.yellow('please generate root CA before getting certificate for sub-domains'));
+      certCallback && certCallback(Errors.ROOT_CA_NOT_EXISTS);
+      return;
+    }
+    const keyFile = path.join(certDir, '__hostname.key'.replace(/__hostname/, hostname)),
+      crtFile = path.join(certDir, '__hostname.crt'.replace(/__hostname/, hostname));
+
+    if (!cache_rootCACrtFileContent || !cache_rootCAKeyFileContent) {
+      cache_rootCACrtFileContent = fs.readFileSync(rootCAcrtFilePath, { encoding: 'utf8' });
+      cache_rootCAKeyFileContent = fs.readFileSync(rootCAkeyFilePath, { encoding: 'utf8' });
     }
 
-    var isWin             = /^win/.test(process.platform),
-        certDir           = rootDirPath,
-        rootCAcrtFilePath = path.join(certDir,"rootCA.crt"),
-        rootCAkeyFilePath = path.join(certDir,"rootCA.key"),
-        createCertTaskMgr = new asyncTask();
-    var cache_rootCACrtFileContent, cache_rootCAKeyFileContent;
-    var rootCAExists = false;
-
-    if(!fs.existsSync(certDir)){
-        try{
-            fs.mkdirSync(certDir, '0777');
-        }catch(e){
-            console.log("===========");
-            console.log("failed to create cert dir ,please create one by yourself - " + certDir);
-            console.log("===========");
+    createCertTaskMgr.addTask(hostname, (callback) => {
+      if (!fs.existsSync(keyFile) || !fs.existsSync(crtFile)) {
+        try {
+          const result = certGenerator.generateCertsForHostname(hostname, {
+            cert: cache_rootCACrtFileContent,
+            key: cache_rootCAKeyFileContent
+          });
+          fs.writeFileSync(keyFile, result.privateKey);
+          fs.writeFileSync(crtFile, result.certificate);
+          callback(null, result.privateKey, result.certificate);
+        } catch (e) {
+          callback(e);
         }
+      } else {
+        callback(null, fs.readFileSync(keyFile), fs.readFileSync(crtFile));
+      }
+    }, (err, keyContent, crtContent) => {
+      if (!err) {
+        certCallback(null, keyContent, crtContent);
+      } else {
+        certCallback(err);
+      }
+    });
+  }
+
+  function clearCerts(cb) {
+    util.deleteFolderContentsRecursive(certDir);
+    cb && cb();
+  }
+
+  function isRootCAFileExists() {
+    return (fs.existsSync(rootCAcrtFilePath) && fs.existsSync(rootCAkeyFilePath));
+  }
+
+  function generateRootCA(config, certCallback) {
+    if (!config || !config.commonName) {
+      console.error(color.red('The "config.commonName" for rootCA is required, please specify.'));
+      certCallback(Errors.ROOT_CA_COMMON_NAME_UNSPECIFIED);
+      return;
     }
 
-    function getCertificate(hostname, certCallback){
-        if (!_checkRootCA()) {
-            console.log(color.yellow('please generate root CA before getting certificate for sub-domains'));
-            certCallback && certCallback(Errors.ROOT_CA_NOT_EXISTS);
-            return;
-        }
-        var keyFile = path.join(certDir , "__hostname.key".replace(/__hostname/,hostname) ),
-            crtFile = path.join(certDir , "__hostname.crt".replace(/__hostname/,hostname) );
-
-        if(!cache_rootCACrtFileContent || !cache_rootCAKeyFileContent){
-            cache_rootCACrtFileContent = fs.readFileSync(rootCAcrtFilePath, { encoding: 'utf8' });
-            cache_rootCAKeyFileContent = fs.readFileSync(rootCAkeyFilePath, { encoding: 'utf8' });
-        }
-
-        createCertTaskMgr.addTask(hostname,function(callback){
-            if(!fs.existsSync(keyFile) || !fs.existsSync(crtFile)){
-                try{
-                    var result = certGenerator.generateCertsForHostname(hostname, {
-                        cert: cache_rootCACrtFileContent,
-                        key: cache_rootCAKeyFileContent
-                    });
-                    fs.writeFileSync(keyFile, result.privateKey);
-                    fs.writeFileSync(crtFile, result.certificate);
-                    callback(null, result.privateKey, result.certificate);
-
-                }catch(e){
-                    callback(e);
-                }
-            }else{
-                callback(null , fs.readFileSync(keyFile) , fs.readFileSync(crtFile));
-            }
-
-        },function(err,keyContent,crtContent){
-            if(!err){
-                certCallback(null ,keyContent,crtContent);
-            }else{
-                certCallback(err);
-            }
-        });
+    if (isRootCAFileExists()) {
+      if (config.overwrite) {
+        startGenerating(config.commonName, certCallback);
+      } else {
+        console.error(color.red('The rootCA exists already, if you want to overwrite it, please specify the "config.overwrite=true"'));
+        certCallback(Errors.ROOT_CA_EXISTED);
+      }
+    } else {
+      startGenerating(config.commonName, certCallback);
     }
 
-    function clearCerts(cb){
-        util.deleteFolderContentsRecursive(certDir);
-        cb && cb();
-    }
-
-    function isRootCAFileExists(){
-        return (fs.existsSync(rootCAcrtFilePath) && fs.existsSync(rootCAkeyFilePath));
-    }
-
-    function generateRootCA(options, certCallback){
-        if (!options || !options.commonName) {
-            console.error(color.red('The "options.commonName" for rootCA is required, please specify.'));
-            certCallback(Errors.ROOT_CA_COMMON_NAME_UNSPECIFIED);
-            return;
-        }
-
-        if(isRootCAFileExists()){
-            if (options.overwrite) {
-                startGenerating(options.commonName, certCallback);
-            } else {
-                console.error(color.red('The rootCA exists already, if you want to overwrite it, please specify the "options.overwrite=true"'));
-                certCallback(Errors.ROOT_CA_EXISTED);
-                return;
-            }
-        }else{
-            startGenerating(options.commonName, certCallback);
-        }
-
-        function startGenerating(commonName, certCallback){
+    function startGenerating(commonName, cb) {
             //clear old certs
-            clearCerts(function(error){
-                console.log(color.green("temp certs cleared"));
-                try{
-                    var result = certGenerator.generateRootCA(commonName);
-                    fs.writeFileSync(rootCAkeyFilePath, result.privateKey);
-                    fs.writeFileSync(rootCAcrtFilePath, result.certificate);
+      clearCerts((error) => {
+        console.log(color.green('temp certs cleared'));
+        try {
+          const result = certGenerator.generateRootCA(commonName);
+          fs.writeFileSync(rootCAkeyFilePath, result.privateKey);
+          fs.writeFileSync(rootCAcrtFilePath, result.certificate);
 
-                    console.log(color.green("rootCA generated"));
-                    console.log(color.green(color.bold("PLEASE TRUST the rootCA.crt in " + certDir)));
+          console.log(color.green('rootCA generated'));
+          console.log(color.green(color.bold('PLEASE TRUST the rootCA.crt in ' + certDir)));
 
-                    certCallback && certCallback(null, rootCAkeyFilePath, rootCAcrtFilePath);
-                }catch(e){
-                    console.log(color.red(e));
-                    console.log(color.red(e.stack));
-                    console.log(color.red("fail to generate root CA"));
-                    certCallback && certCallback(e);
-                }
-            });
+          cb && cb(null, rootCAkeyFilePath, rootCAcrtFilePath);
+        } catch (e) {
+          console.log(color.red(e));
+          console.log(color.red(e.stack));
+          console.log(color.red('fail to generate root CA'));
+          cb && cb(e);
         }
+      });
+    }
+  }
+
+  function getRootCAFilePath() {
+    return isRootCAFileExists() ? rootCAcrtFilePath : '';
+  }
+
+  function getRootDirPath() {
+    return rootDirPath;
+  }
+
+  function _checkRootCA() {
+    if (rootCAExists) {
+      return true;
     }
 
-    function getRootCAFilePath(){
-        return isRootCAFileExists() ? rootCAcrtFilePath: '';
+    if (!isRootCAFileExists()) {
+      console.log(color.red('can not find rootCA.crt or rootCA.key'));
+      console.log(color.red('you may generate one'));
+      return false;
+    } else {
+      rootCAExists = true;
+      return true;
     }
+  }
 
-    function getRootDirPath () {
-        return rootDirPath;
-    }
-
-    function _checkRootCA(){
-        if (rootCAExists) {
-            return true;
-        }
-
-        if(!isRootCAFileExists()){
-            console.log(color.red("can not find rootCA.crt or rootCA.key"));
-            console.log(color.red("you may generate one"));
-            return false;
-        } else{
-            rootCAExists = true;
-            return true;
-        }
-    }
-
-    // TODO: getFreeport
-    function ifRootCATrusted(callback){
-        if (!isRootCAFileExists()){
-            callback && callback(new Error('ROOTCA_NOT_EXIST'));
-        } else {
-            const HTTPS_RESPONSE = 'HTTPS Server is ON';
+  function ifRootCATrusted(callback) {
+    if (!isRootCAFileExists()) {
+      callback && callback(new Error('ROOTCA_NOT_EXIST'));
+    } else {
+      const HTTPS_RESPONSE = 'HTTPS Server is ON';
             // local.anyproxy.io --> 127.0.0.1
-            getCertificate('local.anyproxy.io', function(e, key, cert){
-                if (e) {
-                    callback && callback(e);
-                    return ;
-                }
-                const server = https.createServer({
-                    ca: fs.readFileSync(rootCAcrtFilePath),
-                    key,
-                    cert,
-                }, function(req, res){
-                    res.end(HTTPS_RESPONSE);
-                }).listen(9999);
+      getCertificate('local.anyproxy.io', (e, key, cert) => {
+        getPort()
+        .then((port) => {
+          if (e) {
+            callback && callback(e);
+            return;
+          }
+          const server = https.createServer({
+            ca: fs.readFileSync(rootCAcrtFilePath),
+            key,
+            cert,
+          }, (req, res) => {
+            res.end(HTTPS_RESPONSE);
+          }).listen(port);
 
-                // do not use node.http to test the cert
-                // ref: https://github.com/nodejs/node/issues/4175
-                // TODO: test in windows
-                const testCmd = 'curl https://local.anyproxy.io:9999';
-                exec(testCmd, {
-                    timeout: 1000
-                }, (error, stdout, stderr) => {
-                    server.close();
-                    if (stdout && stdout.indexOf(HTTPS_RESPONSE) >= 0) {
-                        callback && callback(null, true);
-                    } else {
-                        callback && callback(null, false);
-                    }
-                });
-            });
-        }
+            // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
+            // TODO: test in windows
+          const testCmd = 'curl https://local.anyproxy.io:' + port;
+          exec(testCmd, { timeout: 1000 }, (error, stdout, stderr) => {
+            server.close();
+            if (stdout && stdout.indexOf(HTTPS_RESPONSE) >= 0) {
+              callback && callback(null, true);
+            } else {
+              callback && callback(null, false);
+            }
+          });
+        })
+        .catch(callback);
+      });
     }
+  }
 
-    return {
-        getRootCAFilePath: getRootCAFilePath,
-        generateRootCA: generateRootCA,
-        getCertificate: getCertificate,
-        clearCerts: clearCerts,
-        isRootCAFileExists: isRootCAFileExists,
-        ifRootCATrusted,
-        getRootDirPath: getRootDirPath,
-    };
+  return {
+    getRootCAFilePath,
+    generateRootCA,
+    getCertificate,
+    clearCerts,
+    isRootCAFileExists,
+    ifRootCATrusted,
+    getRootDirPath,
+  };
 }
 
 // var certMgr = new CertManager();
+// // certMgr.generateRootCA({ commonName:'test' }, function(){
+
+// // });
 // certMgr.ifRootCATrusted(function(err, ifTusted){
 //     console.log(err);
 //     console.log('ifTrusted', ifTusted);
