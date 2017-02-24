@@ -33,7 +33,6 @@ function CertManager(options) {
     certGenerator.setDefaultAttrs(options.defaultCertAttrs);
   }
 
-    //   isWin = /^win/.test(process.platform)
   const certDir = rootDirPath,
     rootCAcrtFilePath = path.join(certDir, 'rootCA.crt'),
     rootCAkeyFilePath = path.join(certDir, 'rootCA.key'),
@@ -119,7 +118,7 @@ function CertManager(options) {
     }
 
     function startGenerating(commonName, cb) {
-            //clear old certs
+      //clear old certs
       clearCerts((error) => {
         console.log(color.green('temp certs cleared'));
         try {
@@ -167,9 +166,11 @@ function CertManager(options) {
   function ifRootCATrusted(callback) {
     if (!isRootCAFileExists()) {
       callback && callback(new Error('ROOTCA_NOT_EXIST'));
+    } else if (/^win/.test(process.platform)) {
+      callback && callback(new Error('UNABLE_TO_DETECT_IN_WINDOWS'));
     } else {
       const HTTPS_RESPONSE = 'HTTPS Server is ON';
-            // local.anyproxy.io --> 127.0.0.1
+      // local.asnyproxy.io --> 127.0.0.1
       getCertificate('local.anyproxy.io', (e, key, cert) => {
         getPort()
         .then((port) => {
@@ -185,8 +186,7 @@ function CertManager(options) {
             res.end(HTTPS_RESPONSE);
           }).listen(port);
 
-            // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
-            // TODO: test in windows
+          // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
           const testCmd = 'curl https://local.anyproxy.io:' + port;
           exec(testCmd, { timeout: 1000 }, (error, stdout, stderr) => {
             server.close();
@@ -212,14 +212,5 @@ function CertManager(options) {
     getRootDirPath,
   };
 }
-
-// var certMgr = new CertManager();
-// // certMgr.generateRootCA({ commonName:'test' }, function(){
-
-// // });
-// certMgr.ifRootCATrusted(function(err, ifTusted){
-//     console.log(err);
-//     console.log('ifTrusted', ifTusted);
-// });
 
 module.exports = CertManager;

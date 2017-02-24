@@ -130,6 +130,9 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 ### isRootCAFileExists()
 获取根证书是否存在的状态
 
+### ifRootCATrusted()
+检测RootCA是否已经被信任(windows下不可用)
+
 #### 返回
 - `bool` 是否存在根证书
 
