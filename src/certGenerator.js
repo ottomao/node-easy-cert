@@ -1,3 +1,5 @@
+'use strict'
+
 const forge = require('node-forge');
 
 let defaultAttrs = [

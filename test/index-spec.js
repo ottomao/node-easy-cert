@@ -1,3 +1,5 @@
+'use strict'
+
 const CertManager = require('../src/index.js');
 const util = require('../src/util.js');
 const fs = require('fs');

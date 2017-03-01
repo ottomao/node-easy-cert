@@ -3,6 +3,8 @@
 *
 */
 
+'use strict';
+
 module.exports = {
   ROOT_CA_NOT_EXISTS: 'ROOT_CA_NOT_EXISTS', // root CA has not been generated yet
   ROOT_CA_EXISTED: 'ROOT_CA_EXISTED', // root CA was existed, be ware that it will be overwrited

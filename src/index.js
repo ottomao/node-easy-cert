@@ -1,3 +1,5 @@
+'use strict'
+
 delete require.cache['./certGenerator'];
 
 const path = require('path'),
