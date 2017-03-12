@@ -40,11 +40,10 @@ function generateRootCA(commonName) {
   cert.setSubject(attrs);
   cert.setIssuer(attrs);
   cert.setExtensions([
-  { name: 'basicConstraints', cA: true }
+  { name: 'basicConstraints', cA: true },
   // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
   // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
   // { name: 'nsCertType', client: true, server: true, email: true, objsign: true, sslCA: true, emailCA: true, objCA: true },
-  // { name: 'subjectAltName', altNames: [ { type: 6, /* URI */ value: 'http://example.org/webid#me' }, { type: 7, /* IP */ ip: '127.0.0.1' } ] },
   // { name: 'subjectKeyIdentifier' }
   ]);
 
@@ -79,7 +78,16 @@ function generateCertsForHostname(domain, rootCAConfig) {
     }
   ]);
   cert.setSubject(attrs);
-  cert.sign(caKey, forge.md.sha256.create());
+  cert.setExtensions([
+    { name: 'basicConstraints', cA: true },
+    { name: 'subjectAltName', altNames: [{ type: 2, value: domain }] },
+    // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
+    // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
+    // { name: 'nsCertType', client: true, server: true, email: true, objsign: true, sslCA: true, emailCA: true, objCA: true },
+    // { name: 'subjectKeyIdentifier' }
+  ]);
+
+  cert.sign(caKey, forge.md.sha256.create());  
 
   return {
     privateKey: forge.pki.privateKeyToPem(keys.privateKey),
