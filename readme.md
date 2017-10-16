@@ -1,7 +1,16 @@
-# 用于管理自生成的HTTPS证书的插件
+node-easy-cert
+-------------------
+
+[![npm download][download-image]][download-url]
+
+[download-image]: https://img.shields.io/npm/dm/node-easy-cert.svg?style=flat-square
+[download-url]: https://npmjs.org/package/node-easy-cert
+
+
+## 用于管理自生成的HTTPS证书的插件
 本插件可以生成自签名的root证书，并基于该root证书，生成各个域名的HTTPS证书。
 
-# 使用方式
+## 使用方式
 ```js
 const CertManager = require('cert-manager');
 
@@ -23,16 +32,16 @@ const rootOptions = {
 
 crtMgr.generateRootCA(rootOptions);
 ```
-# 配置项(可选)
+## 配置项(可选)
 
-## rootDirPath
+### rootDirPath
 证书目录的全路径，如果配置，优先级高于rootDirName
 
-# 证书生成目录
+## 证书生成目录
 默认情况下，证书都会生成在 `{USER_HOME}/.node_easy_certs/`。
 如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下。
 
-# 方法
+## 方法
 ### generateRootCA(options, callback(error, keyPath, crtPath))
 在证书根目录下面生成根证书rootCA.crt 和 rootCA.key。生成后，请选择rootCA.crt,**安装并信任**，否则您的组件可能工作失败。
 
@@ -59,7 +68,7 @@ crtMgr.generateRootCA(rootOptions);
 
 ```js
 const options = {
-  commonName: 'yourPreferrence'
+  commonName: 'yourPreference'
 };
 
 crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
@@ -130,10 +139,13 @@ certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
 ### isRootCAFileExists()
 获取根证书是否存在的状态
 
+### ifRootCATrusted()
+检测RootCA是否已经被信任(windows下不可用)
+
 #### 返回
 - `bool` 是否存在根证书
 
-### clearCerts(callback(error))
+### clearCerts()
 清除当前目录下所有的证书文件
 
 #### 返回
