@@ -79,7 +79,7 @@ function generateCertsForHostname(domain, rootCAConfig) {
   ]);
   cert.setSubject(attrs);
   cert.setExtensions([
-    { name: 'basicConstraints', cA: true },
+    { name: 'basicConstraints', cA: false },
     { name: 'subjectAltName', altNames: [{ type: 2, value: domain }] },
     // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
     // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
@@ -87,7 +87,7 @@ function generateCertsForHostname(domain, rootCAConfig) {
     // { name: 'subjectKeyIdentifier' }
   ]);
 
-  cert.sign(caKey, forge.md.sha256.create());  
+  cert.sign(caKey, forge.md.sha256.create());
 
   return {
     privateKey: forge.pki.privateKeyToPem(keys.privateKey),
