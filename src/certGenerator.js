@@ -1,6 +1,7 @@
 'use strict'
 
 const forge = require('node-forge');
+const Util = require('./util');
 
 let defaultAttrs = [
   { name: 'countryName', value: 'CN' },
@@ -8,6 +9,25 @@ let defaultAttrs = [
   { shortName: 'ST', value: 'SH' },
   { shortName: 'OU', value: 'EasyCert SSL' }
 ];
+
+/**
+* different domain format needs different SAN
+*
+*/
+function getExtensionSAN(domain = '') {
+  const isIpDomain = Util.isIpDomain(domain);
+  if (isIpDomain) {
+    return {
+      name: 'subjectAltName',
+      altNames: [{ type: 7, ip: domain }]
+    };
+  } else {
+    return {
+      name: 'subjectAltName',
+      altNames: [{ type: 2, value: domain }]
+    };
+  }
+}
 
 function getKeysAndCert(serialNumber) {
   const keys = forge.pki.rsa.generateKeyPair(2048);
@@ -77,15 +97,14 @@ function generateCertsForHostname(domain, rootCAConfig) {
       value: domain
     }
   ]);
-  cert.setSubject(attrs);
-  cert.setExtensions([
+
+  const extensions = [
     { name: 'basicConstraints', cA: false },
-    { name: 'subjectAltName', altNames: [{ type: 2, value: domain }] },
-    // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
-    // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
-    // { name: 'nsCertType', client: true, server: true, email: true, objsign: true, sslCA: true, emailCA: true, objCA: true },
-    // { name: 'subjectKeyIdentifier' }
-  ]);
+    getExtensionSAN(domain)
+  ];
+
+  cert.setSubject(attrs);
+  cert.setExtensions(extensions);
 
   cert.sign(caKey, forge.md.sha256.create());
 

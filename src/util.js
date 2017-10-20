@@ -30,4 +30,13 @@ module.exports.getDefaultRootDirName = function () {
   return '.node_easy_certs';
 };
 
+/*
+* identify whether the
+*/
+module.exports.isIpDomain = function (domain = '') {
+  const ipReg = /^\d+?\.\d+?\.\d+?\.\d+?$/;
+
+  return ipReg.test(domain);
+};
+
 module.exports.deleteFolderContentsRecursive = deleteFolderContentsRecursive;
