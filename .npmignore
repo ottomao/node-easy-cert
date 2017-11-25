@@ -2,8 +2,6 @@ cert/**/*.srl
 cert/**/*.key
 cert/**/*.crt
 cert/**/*.csr
-web/build/.module-cache/
-tmp.txt
 .*.swp
 ._*
 .DS_Store
@@ -13,8 +11,6 @@ tmp.txt
 .svn
 .wafpickle-*
 CVS
-npm-debug.log
-logs
 *.log
 pids
 *.pid

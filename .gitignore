@@ -2,13 +2,10 @@ cert/**/*.srl
 cert/**/*.key
 cert/**/*.crt
 cert/**/*.csr
-web/build/.module-cache/
-tmp.txt
 .*.swp
 ._*
 .DS_Store
 .git
-.hg
 .lock-wscript
 .svn
 .wafpickle-*
