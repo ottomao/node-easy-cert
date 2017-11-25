@@ -25,5 +25,4 @@ coverage
 node_modules
 temp
 .temp_certs
-dist
 *.tgz
