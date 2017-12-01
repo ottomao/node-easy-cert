@@ -1,7 +1,7 @@
 'use strict'
 
-const CertManager = require('../src/index.js');
-const util = require('../src/util.js');
+const CertManager = require('../dist/index.js');
+const util = require('../dist/util.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -102,7 +102,7 @@ describe('Test Cert Manager', () => {
     });
 
     it('clearCerts', (done) => {
-      certMgr.clearCerts();            
+      certMgr.clearCerts();
       fs.rmdir(rootDirPath, (error) => {
         if (error) {
           console.error('root dir path is:', error);
@@ -114,4 +114,3 @@ describe('Test Cert Manager', () => {
     });
   }
 });
-

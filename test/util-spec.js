@@ -1,6 +1,6 @@
 'use strict'
 
-const Util = require('../src/util.js');
+const Util = require('../dist/util.js');
 
 describe('Test Utils', () => {
   beforeAll(() => {

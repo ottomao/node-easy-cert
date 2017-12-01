@@ -6,12 +6,11 @@ cert/**/*.csr
 ._*
 .DS_Store
 .git
+.hg
 .lock-wscript
 .svn
 .wafpickle-*
 CVS
-npm-debug.log
-logs
 *.log
 pids
 *.pid
@@ -22,5 +21,4 @@ coverage
 node_modules
 temp
 .temp_certs
-dist
 *.tgz
