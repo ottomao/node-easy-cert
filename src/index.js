@@ -9,7 +9,8 @@ const path = require('path'),
   util = require('./util'),
   Errors = require('./errorConstants'),
   https = require('https'),
-  asyncTask = require('async-task-mgr'),
+  AsyncTask = require('async-task-mgr'),
+  winCertUtil = require('./winCertUtil'),
   exec = require('child_process').exec;
 
 function getPort() {
@@ -38,9 +39,9 @@ function CertManager(options) {
   const certDir = rootDirPath,
     rootCAcrtFilePath = path.join(certDir, 'rootCA.crt'),
     rootCAkeyFilePath = path.join(certDir, 'rootCA.key'),
-    createCertTaskMgr = new asyncTask();
-  let cache_rootCACrtFileContent, 
-    cache_rootCAKeyFileContent;
+    createCertTaskMgr = new AsyncTask();
+  let cacheRootCACrtFileContent,
+    cacheRootCAKeyFileContent;
   let rootCAExists = false;
 
   if (!fs.existsSync(certDir)) {
@@ -62,17 +63,17 @@ function CertManager(options) {
     const keyFile = path.join(certDir, '__hostname.key'.replace(/__hostname/, hostname)),
       crtFile = path.join(certDir, '__hostname.crt'.replace(/__hostname/, hostname));
 
-    if (!cache_rootCACrtFileContent || !cache_rootCAKeyFileContent) {
-      cache_rootCACrtFileContent = fs.readFileSync(rootCAcrtFilePath, { encoding: 'utf8' });
-      cache_rootCAKeyFileContent = fs.readFileSync(rootCAkeyFilePath, { encoding: 'utf8' });
+    if (!cacheRootCACrtFileContent || !cacheRootCAKeyFileContent) {
+      cacheRootCACrtFileContent = fs.readFileSync(rootCAcrtFilePath, { encoding: 'utf8' });
+      cacheRootCAKeyFileContent = fs.readFileSync(rootCAkeyFilePath, { encoding: 'utf8' });
     }
 
     createCertTaskMgr.addTask(hostname, (callback) => {
       if (!fs.existsSync(keyFile) || !fs.existsSync(crtFile)) {
         try {
           const result = certGenerator.generateCertsForHostname(hostname, {
-            cert: cache_rootCACrtFileContent,
-            key: cache_rootCAKeyFileContent
+            cert: cacheRootCACrtFileContent,
+            key: cacheRootCAKeyFileContent
           });
           fs.writeFileSync(keyFile, result.privateKey);
           fs.writeFileSync(crtFile, result.certificate);
@@ -120,8 +121,8 @@ function CertManager(options) {
     }
 
     function startGenerating(commonName, cb) {
-      //clear old certs
-      clearCerts((error) => {
+      // clear old certs
+      clearCerts(() => {
         console.log(color.green('temp certs cleared'));
         try {
           const result = certGenerator.generateRootCA(commonName);
@@ -169,37 +170,46 @@ function CertManager(options) {
     if (!isRootCAFileExists()) {
       callback && callback(new Error('ROOTCA_NOT_EXIST'));
     } else if (/^win/.test(process.platform)) {
-      callback && callback(new Error('UNABLE_TO_DETECT_IN_WINDOWS'));
+      winCertUtil.ifWinRootCATrusted()
+        .then((isTrusted) => {
+          callback && callback(null, isTrusted)
+        })
+        .catch((e) => {
+          callback && callback(null, false);
+        })
     } else {
       const HTTPS_RESPONSE = 'HTTPS Server is ON';
       // local.asnyproxy.io --> 127.0.0.1
       getCertificate('local.anyproxy.io', (e, key, cert) => {
         getPort()
-        .then((port) => {
-          if (e) {
-            callback && callback(e);
-            return;
-          }
-          const server = https.createServer({
-            ca: fs.readFileSync(rootCAcrtFilePath),
-            key,
-            cert,
-          }, (req, res) => {
-            res.end(HTTPS_RESPONSE);
-          }).listen(port);
-
-          // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
-          const testCmd = 'curl https://local.anyproxy.io:' + port;
-          exec(testCmd, { timeout: 1000 }, (error, stdout, stderr) => {
-            server.close();
-            if (stdout && stdout.indexOf(HTTPS_RESPONSE) >= 0) {
-              callback && callback(null, true);
-            } else {
-              callback && callback(null, false);
+          .then((port) => {
+            if (e) {
+              callback && callback(e);
+              return;
             }
-          });
-        })
-        .catch(callback);
+            const server = https.createServer({
+              ca: fs.readFileSync(rootCAcrtFilePath),
+              key,
+              cert,
+            }, (req, res) => {
+              res.end(HTTPS_RESPONSE);
+            }).listen(port);
+
+            // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
+            const testCmd = 'curl https://local.anyproxy.io:' + port;
+            exec(testCmd, { timeout: 1000 }, (error, stdout, stderr) => {
+              server.close();
+              if (error) {
+                callback && callback(null, false);
+              }
+              if (stdout && stdout.indexOf(HTTPS_RESPONSE) >= 0) {
+                callback && callback(null, true);
+              } else {
+                callback && callback(null, false);
+              }
+            });
+          })
+          .catch(callback);
       });
     }
   }
