@@ -171,8 +171,8 @@ function CertManager(options) {
       callback && callback(new Error('ROOTCA_NOT_EXIST'));
     } else if (/^win/.test(process.platform)) {
       winCertUtil.ifWinRootCATrusted()
-        .then((isTrusted) => {
-          callback && callback(null, isTrusted)
+        .then((ifTrusted) => {
+          callback && callback(null, ifTrusted)
         })
         .catch((e) => {
           callback && callback(null, false);
