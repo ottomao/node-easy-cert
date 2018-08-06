@@ -30,7 +30,7 @@ function getExtensionSAN(domain = '') {
 }
 
 function getKeysAndCert(serialNumber) {
-  const keys = forge.pki.rsa.generateKeyPair(2048);
+  const keys = forge.pki.rsa.generateKeyPair(1024);
   const cert = forge.pki.createCertificate();
   cert.publicKey = keys.publicKey;
   cert.serialNumber = serialNumber || (Math.floor(Math.random() * 100000) + '');
@@ -60,7 +60,7 @@ function generateRootCA(commonName) {
   cert.setSubject(attrs);
   cert.setIssuer(attrs);
   cert.setExtensions([
-  { name: 'basicConstraints', cA: true },
+    { name: 'basicConstraints', cA: true },
   // { name: 'keyUsage', keyCertSign: true, digitalSignature: true, nonRepudiation: true, keyEncipherment: true, dataEncipherment: true },
   // { name: 'extKeyUsage', serverAuth: true, clientAuth: true, codeSigning: true, emailProtection: true, timeStamping: true },
   // { name: 'nsCertType', client: true, server: true, email: true, objsign: true, sslCA: true, emailCA: true, objCA: true },
@@ -77,7 +77,7 @@ function generateRootCA(commonName) {
 }
 
 function generateCertsForHostname(domain, rootCAConfig) {
-  //generate a serialNumber for domain
+  // generate a serialNumber for domain
   const md = forge.md.md5.create();
   md.update(domain);
 
