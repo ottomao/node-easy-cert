@@ -13,6 +13,8 @@ const path = require('path'),
   winCertUtil = require('./winCertUtil'),
   exec = require('child_process').exec;
 
+const DOMAIN_TO_VERIFY_HTTPS = 'localtest.me';
+
 function getPort() {
   return new Promise((resolve, reject) => {
     const server = require('net').createServer();
@@ -179,24 +181,29 @@ function CertManager(options) {
         })
     } else {
       const HTTPS_RESPONSE = 'HTTPS Server is ON';
-      // local.asnyproxy.io --> 127.0.0.1
-      getCertificate('local.anyproxy.io', (e, key, cert) => {
+      // localtest.me --> 127.0.0.1
+      getCertificate(DOMAIN_TO_VERIFY_HTTPS, (e, key, cert) => {
         getPort()
-          .then((port) => {
+          .then(port => {
             if (e) {
               callback && callback(e);
               return;
             }
-            const server = https.createServer({
-              ca: fs.readFileSync(rootCAcrtFilePath),
-              key,
-              cert,
-            }, (req, res) => {
-              res.end(HTTPS_RESPONSE);
-            }).listen(port);
+            const server = https
+              .createServer(
+                {
+                  ca: fs.readFileSync(rootCAcrtFilePath),
+                  key,
+                  cert
+                },
+                (req, res) => {
+                  res.end(HTTPS_RESPONSE);
+                }
+              )
+              .listen(port);
 
             // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
-            const testCmd = 'curl https://local.anyproxy.io:' + port;
+            const testCmd = `curl https://${DOMAIN_TO_VERIFY_HTTPS}:${port}`;
             exec(testCmd, { timeout: 1000 }, (error, stdout, stderr) => {
               server.close();
               if (error) {
