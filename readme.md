@@ -71,7 +71,7 @@ const options = {
   commonName: 'yourPreference'
 };
 
-crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
+crtMgr.generateRootCA(options, (error, keyPath, crtPath) => {
   // 如果根证书已经存在，且没有设置overwrite为true，则需要捕获
   if (error === 'ROOT_CA_EXISTED') {
     // 处理当证书已经存在的情形
