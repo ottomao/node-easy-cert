@@ -41,6 +41,9 @@ crtMgr.generateRootCA(rootOptions);
 默认情况下，证书都会生成在 `{USER_HOME}/.node_easy_certs/`。
 如果配置了`rootDirPath`, 那么所有的证书都会生成在该目录下。
 
+### ignoreSslVerify
+是否忽略证书检验，默认为false。防止信任自签证书时调用 `ifRootCATrusted` 方法失败 。
+
 ## 方法
 ### generateRootCA(options, callback(error, keyPath, crtPath))
 在证书根目录下面生成根证书rootCA.crt 和 rootCA.key。生成后，请选择rootCA.crt,**安装并信任**，否则您的组件可能工作失败。
