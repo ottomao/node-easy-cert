@@ -203,7 +203,7 @@ function CertManager(options) {
               .listen(port);
 
             // do not use node.http to test the cert. Ref: https://github.com/nodejs/node/issues/4175
-            const testCmd = `curl https://${DOMAIN_TO_VERIFY_HTTPS}:${port}`;
+            const testCmd = options.ignoreSslVerify ? `curl -k https://${DOMAIN_TO_VERIFY_HTTPS}:${port}` : `curl https://${DOMAIN_TO_VERIFY_HTTPS}:${port}`;
             exec(testCmd, { timeout: 1000 }, (error, stdout, stderr) => {
               server.close();
               if (error) {
