@@ -30,7 +30,7 @@ function getExtensionSAN(domain = '') {
 }
 
 function getKeysAndCert(serialNumber) {
-  const keys = forge.pki.rsa.generateKeyPair(1024);
+  const keys = forge.pki.rsa.generateKeyPair(2048);
   const cert = forge.pki.createCertificate();
   cert.publicKey = keys.publicKey;
   cert.serialNumber = serialNumber || (Math.floor(Math.random() * 100000) + '');
