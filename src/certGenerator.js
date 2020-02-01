@@ -2,6 +2,7 @@
 
 const forge = require('node-forge');
 const Util = require('./util');
+var rsaCompat = require('rsa-compat');
 
 let defaultAttrs = [
   { name: 'countryName', value: 'CN' },
@@ -30,7 +31,15 @@ function getExtensionSAN(domain = '') {
 }
 
 function getKeysAndCert(serialNumber) {
-  const keys = forge.pki.rsa.generateKeyPair(2048);
+
+  //高效率算法 200ms
+  var keys = {};
+  rsaCompat.RSA.generateKeypair({ bitlen: 2048, exp: 65537, public: true, pem: true, internal: true }, (err, keypair)=> {
+    keys.publicKey = forge.pki.publicKeyFromPem(keypair.publicKeyPem);
+    keys.privateKey = forge.pki.privateKeyFromPem(keypair.privateKeyPem);
+  });
+
+  //const keys = forge.pki.rsa.generateKeyPair(2048); 速度太慢 5450ms
   const cert = forge.pki.createCertificate();
   cert.publicKey = keys.publicKey;
   cert.serialNumber = serialNumber || (Math.floor(Math.random() * 100000) + '');
