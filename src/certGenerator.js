@@ -36,7 +36,7 @@ function getKeysAndCert(serialNumber) {
   cert.serialNumber = serialNumber || (Math.floor(Math.random() * 100000) + '');
   var now = Date.now();
   // compatible with apple's updated cert policy: https://support.apple.com/en-us/HT210176
-  cert.validity.notBefore = new Date(now - 24 * 60 * 60 * 1000);      // 1 day before
+  cert.validity.notBefore = new Date(now - 24 * 60 * 60 * 1000); // 1 day before
   cert.validity.notAfter = new Date(now + 824 * 24 * 60 * 60 * 1000); // 824 days after
   return {
     keys,

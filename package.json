@@ -1,6 +1,6 @@
 {
   "name": "node-easy-cert",
-  "version": "1.3.1",
+  "version": "1.3.3",
   "description": "A tool for managing self-signed certifications",
   "main": "dist/index.js",
   "scripts": {
