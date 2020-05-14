@@ -34,10 +34,10 @@ function getKeysAndCert(serialNumber) {
   const cert = forge.pki.createCertificate();
   cert.publicKey = keys.publicKey;
   cert.serialNumber = serialNumber || (Math.floor(Math.random() * 100000) + '');
-  cert.validity.notBefore = new Date();
-  cert.validity.notBefore.setFullYear(cert.validity.notBefore.getFullYear() - 10); // 10 years
-  cert.validity.notAfter = new Date();
-  cert.validity.notAfter.setFullYear(cert.validity.notAfter.getFullYear() + 10); // 10 years
+  var now = Date.now();
+  // compatible with apple's updated cert policy: https://support.apple.com/en-us/HT210176
+  cert.validity.notBefore = new Date(now - 24 * 60 * 60 * 1000);      // 1 day before
+  cert.validity.notAfter = new Date(now + 824 * 24 * 60 * 60 * 1000); // 824 days after
   return {
     keys,
     cert
