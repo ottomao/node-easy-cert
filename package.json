@@ -23,7 +23,7 @@
     "async-task-mgr": "^1.1.0",
     "colorful": "^2.1.0",
     "commander": "^2.9.0",
-    "node-forge": "^0.6.42",
+    "node-forge": "^0.10.0",
     "node-powershell": "^3.3.1"
   },
   "devDependencies": {
