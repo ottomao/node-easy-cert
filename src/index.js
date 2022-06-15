@@ -179,6 +179,16 @@ function CertManager(options) {
         .catch((e) => {
           callback && callback(null, false);
         })
+    } else if (process.platform === 'darwin') {
+      // https://superuser.com/a/1715920
+      exec(`security verify-cert -c ${rootCAcrtFilePath}`, (error, stdout, stderr) => {
+        if (error) {
+          console.log(color.red(`verify cert failed: ${error || stderr}`));
+          callback && callback(null, false);
+        } else {
+          callback && callback(null, /successful/.test(stdout));
+        }
+      });
     } else {
       const HTTPS_RESPONSE = 'HTTPS Server is ON';
       // localtest.me --> 127.0.0.1
