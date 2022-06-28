@@ -14,19 +14,14 @@ let defaultAttrs = [
 * different domain format needs different SAN
 *
 */
-function getExtensionSAN(domain = '') {
-  const isIpDomain = Util.isIpDomain(domain);
-  if (isIpDomain) {
-    return {
-      name: 'subjectAltName',
-      altNames: [{ type: 7, ip: domain }]
-    };
-  } else {
-    return {
-      name: 'subjectAltName',
-      altNames: [{ type: 2, value: domain }]
-    };
-  }
+function getExtensionSAN(domain = '', extraHosts = []) {
+  return {
+    name: 'subjectAltName',
+    altNames: (extraHosts || []).concat([domain]).map(d => {
+      const isIpDomain = Util.isIpDomain(d);
+      return isIpDomain ? { type: 7, ip: d } : { type: 2, value: d };
+    })
+  };
 }
 
 function getKeysAndCert(serialNumber) {
@@ -76,7 +71,7 @@ function generateRootCA(commonName) {
   };
 }
 
-function generateCertsForHostname(domain, rootCAConfig) {
+function generateCertsForHostname(domain, rootCAConfig, extraHosts) {
   // generate a serialNumber for domain
   const md = forge.md.md5.create();
   md.update(domain);
@@ -100,7 +95,7 @@ function generateCertsForHostname(domain, rootCAConfig) {
 
   const extensions = [
     { name: 'basicConstraints', cA: false },
-    getExtensionSAN(domain)
+    getExtensionSAN(domain, extraHosts)
   ];
 
   cert.setSubject(attrs);

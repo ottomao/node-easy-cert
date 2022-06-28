@@ -90,7 +90,7 @@ crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
 });
 ```
 
-### getCertificate(hostname, callback([error, keyContent, crtContent]))
+### getCertificate(hostname, [extraHosts,] callback([error, keyContent, crtContent]))
 获取指定域名下的证书的key和crt内容，如果证书还不存在，则会先创建该证书。
 
 > 证书的生成基于生成的rootCA根证书来签名，如果rootCA根证书还未创建，则会终止并抛出错误：`ROOT_CA_NOT_EXISTS`
@@ -102,6 +102,9 @@ crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
 - `hostname` `string`
 所要获取证书内容的hostname
 
+- `extraHosts`: `string[]`
+可选，附带其他的 hostname 列表，用于一个证书支持多个域名场景
+
 - `callback` `function`
 获取到内容后的回调函数，主要包含key的内容和crt的内容，如果获取过程中出现异常，则放入error变量中
 
@@ -109,7 +112,7 @@ crtMgr.generateRootCA(options, (error, keyPath, crtPath) {
 
 #### 调用实例
 ```js
-certManager.getCertificate('localhost', (error, keyContent, crtContent) => {
+certManager.getCertificate('localhost', ['127.0.0.1'], (error, keyContent, crtContent) => {
 
   // 如果根证书还没有生成，需要先生成根证书
   if (error === 'ROOT_CA_NOT_EXISTS') {

@@ -56,7 +56,11 @@ function CertManager(options) {
     }
   }
 
-  function getCertificate(hostname, certCallback) {
+  function getCertificate(hostname, extraHosts, certCallback) {
+    if (typeof extraHosts === 'function' && !certCallback) {
+      certCallback = extraHosts;
+      extraHosts = undefined;
+    }
     if (!_checkRootCA()) {
       console.log(color.yellow('please generate root CA before getting certificate for sub-domains'));
       certCallback && certCallback(Errors.ROOT_CA_NOT_EXISTS);
@@ -76,7 +80,7 @@ function CertManager(options) {
           const result = certGenerator.generateCertsForHostname(hostname, {
             cert: cacheRootCACrtFileContent,
             key: cacheRootCAKeyFileContent
-          });
+          }, extraHosts);
           fs.writeFileSync(keyFile, result.privateKey);
           fs.writeFileSync(crtFile, result.certificate);
           callback(null, result.privateKey, result.certificate);
